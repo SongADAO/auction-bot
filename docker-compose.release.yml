@@ -1,0 +1,22 @@
+version: '3.7'
+
+x-default-build:
+    &default-build
+    build: .
+
+services:
+    songadao-auction-bot-latest:
+        << : *default-build
+        image: songadao/auction-bot:latest
+
+    # songadao-auction-bot-major:
+    #     << : *default-build
+    #     image: songadao/auction-bot:0
+
+    # songadao-auction-bot-minor:
+    #     << : *default-build
+    #     image: songadao/auction-bot:0.0
+
+    # songadao-auction-bot-patch:
+    #     << : *default-build
+    #     image: songadao/auction-bot:0.0.1
