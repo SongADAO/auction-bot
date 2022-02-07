@@ -1,19 +1,14 @@
 require("dotenv").config();
-const HttpProxyAgent = require('https-proxy-agent');
 const { TwitterApi } = require('twitter-api-v2');
 const fetch = require('node-fetch');
 const { contractSAD } = require('./contract.js');
-
-// Proxy settings for local testing
-const proxy = 'http://127.0.0.1:7890';
-const httpAgent = new HttpProxyAgent(proxy);
 
 const client = new TwitterApi({
     appKey: `${process.env.APP_KEY}`,
     appSecret: `${process.env.APP_SECRET}`,
     accessToken: `${process.env.ACCESS_TOKEN}`,
     accessSecret: `${process.env.ACCESS_SECRET}`,
-}, { httpAgent });
+});
 const twitter = client.v2;
 
 function toHTTPS(ipfsLink) {
@@ -22,9 +17,9 @@ function toHTTPS(ipfsLink) {
 
 async function tweetCreation(id) {
     const ipfs = await contractSAD.methods.tokenURI(id).call(); // Token metadata uri
-    var response = await fetch(toHTTPS(ipfs), { agent: httpAgent });
+    var response = await fetch(toHTTPS(ipfs));
     while (!response.ok) {
-        response = await fetch(toHTTPS(ipfs), { agent: httpAgent });
+        response = await fetch(toHTTPS(ipfs));
     }
     const json = await response.json();
     const title = json.name; // Song name

@@ -1,8 +1,6 @@
 {
   "dependencies": {
     "dotenv": "^15.0.0",
-    "https-proxy-agent": "^5.0.0",
-    "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
     "twitter-api-v2": "^1.10.0",
     "web3": "^1.7.0"
@@ -11,9 +9,8 @@
   "version": "1.0.0",
   "description": "Song A Day Auction Bot",
   "main": "main.js",
-  "devDependencies": {},
   "scripts": {
-    "once": "node src/main.js"
+    "start": "node -r dotenv/config ./src/main.js"
   },
   "author": "misterplus"
 }
