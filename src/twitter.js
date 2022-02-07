@@ -5,15 +5,15 @@ const fetch = require('node-fetch');
 const { contractSAD } = require('./contract.js');
 
 // Proxy settings for local testing
-//const proxy = 'http://127.0.0.1:7890';
-//const httpAgent = new HttpProxyAgent(proxy);
+const proxy = 'http://127.0.0.1:7890';
+const httpAgent = new HttpProxyAgent(proxy);
 
 const client = new TwitterApi({
     appKey: `${process.env.APP_KEY}`,
     appSecret: `${process.env.APP_SECRET}`,
     accessToken: `${process.env.ACCESS_TOKEN}`,
     accessSecret: `${process.env.ACCESS_SECRET}`,
-});
+}, { httpAgent });
 const twitter = client.v2;
 
 function toHTTPS(ipfsLink) {
@@ -22,9 +22,9 @@ function toHTTPS(ipfsLink) {
 
 async function tweetCreation(id) {
     const ipfs = await contractSAD.methods.tokenURI(id).call(); // Token metadata uri
-    var response = await fetch(toHTTPS(ipfs));
+    var response = await fetch(toHTTPS(ipfs), { agent: httpAgent });
     while (!response.ok) {
-        response = await fetch(toHTTPS(ipfs));
+        response = await fetch(toHTTPS(ipfs), { agent: httpAgent });
     }
     const json = await response.json();
     const title = json.name; // Song name
@@ -32,10 +32,7 @@ async function tweetCreation(id) {
     return twitter.tweet(`🎵 Daily auction for Song ${id} "${title}" has started!\n\n👉 Place your bid here: https://songaday.world/auction/${id}/ \n▶️ Play the song on youtube: ${youtube}`, {});
 }
 
-function tweetBid(event, map) {
-    const id = event.returnValues.tokenId; // Song ID
-    const bidder = event.returnValues.sender; // Bidder
-    const value = event.returnValues.value / 1e18; // Bid value in ETH
+function tweetBid(id, bidder, value, map) {
     if (map.has(id)) {
         // Tweet id found, reply to the tweet
         return twitter.reply(
@@ -49,10 +46,7 @@ function tweetBid(event, map) {
     }
 }
 
-function tweetEnd(event, map) {
-    const id = event.returnValues.tokenId; // Song ID
-    const winner = event.returnValues.winner; // Winner
-    const amount = event.returnValues.amount / 1e18; // Winning bid in ETH
+function tweetEnd(id, winner, amount, map) {
     if (map.has(id)) {
         // Tweet id found, reply to the tweet
         return twitter.reply(
