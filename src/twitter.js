@@ -5,15 +5,15 @@ const fetch = require('node-fetch');
 const { contractSAD } = require('./contract.js');
 
 // Proxy settings for local testing
-//const proxy = 'http://127.0.0.1:7890';
-//const httpAgent = new HttpProxyAgent(proxy);
+const proxy = 'http://127.0.0.1:7890';
+const httpAgent = new HttpProxyAgent(proxy);
 
 const client = new TwitterApi({
     appKey: `${process.env.APP_KEY}`,
     appSecret: `${process.env.APP_SECRET}`,
     accessToken: `${process.env.ACCESS_TOKEN}`,
     accessSecret: `${process.env.ACCESS_SECRET}`,
-});
+}, { httpAgent });
 const twitter = client.v2;
 
 function toHTTPS(ipfsLink) {
@@ -22,9 +22,9 @@ function toHTTPS(ipfsLink) {
 
 async function tweetCreation(id) {
     const ipfs = await contractSAD.methods.tokenURI(id).call(); // Token metadata uri
-    var response = await fetch(toHTTPS(ipfs));
+    var response = await fetch(toHTTPS(ipfs), { agent: httpAgent });
     while (!response.ok) {
-        response = await fetch(toHTTPS(ipfs));
+        response = await fetch(toHTTPS(ipfs), { agent: httpAgent });
     }
     const json = await response.json();
     const title = json.name; // Song name

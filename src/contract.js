@@ -26,8 +26,7 @@ const options = {
 };
 
 async function getBlockHeight() {
-    const currentBlock = await web3.eth.getBlock("latest");
-    return currentBlock.number;
+    return web3.eth.getBlockNumber();
 }
 
 module.exports = { contractAuction, contractSAD, options, getBlockHeight };
