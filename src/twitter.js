@@ -32,10 +32,7 @@ async function tweetCreation(id) {
     return twitter.tweet(`🎵 Daily auction for Song ${id} "${title}" has started!\n\n👉 Place your bid here: https://songaday.world/auction/${id}/ \n▶️ Play the song on youtube: ${youtube}`, {});
 }
 
-function tweetBid(event, map) {
-    const id = event.returnValues.tokenId; // Song ID
-    const bidder = event.returnValues.sender; // Bidder
-    const value = event.returnValues.value / 1e18; // Bid value in ETH
+function tweetBid(id, bidder, value, map) {
     if (map.has(id)) {
         // Tweet id found, reply to the tweet
         return twitter.reply(
@@ -49,10 +46,7 @@ function tweetBid(event, map) {
     }
 }
 
-function tweetEnd(event, map) {
-    const id = event.returnValues.tokenId; // Song ID
-    const winner = event.returnValues.winner; // Winner
-    const amount = event.returnValues.amount / 1e18; // Winning bid in ETH
+function tweetEnd(id, winner, amount, map) {
     if (map.has(id)) {
         // Tweet id found, reply to the tweet
         return twitter.reply(
