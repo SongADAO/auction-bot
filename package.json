@@ -10,7 +10,7 @@
   "description": "Song A Day Auction Bot",
   "main": "main.js",
   "scripts": {
-    "once": "node src/main.js"
+    "start": "node -r dotenv/config ./src/main.js"
   },
   "author": "misterplus"
 }
