@@ -1,4 +1,4 @@
-## Setup
+## Development Setup
 1. Clone the repository and install the dependencies:
 ```
 git clone https://github.com/SongADAO/auction-bot.git
@@ -16,7 +16,3 @@ WS_ENDPOINT=Infura Mainnet Websocket endpoint (the part after wss://mainnet.infu
 ```
 
 Note that this part may be different if you're running on linux, but as long as you can set all these environment variables you're good to go.
-
-## Deployment
-Setup a cron job to run `npm run once` every minute.
-Alternatively, run `node src/main.js` every minute.

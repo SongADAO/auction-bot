@@ -1,16 +1,19 @@
 const { contractAuction, options, getBlockHeight } = require('./contract.js');
 const { tweetCreation, tweetBid, tweetEnd } = require('./twitter.js');
 
-const logger = require('loglevel');
 const fs = require('fs');
 
 const cacheFile = './cache.json';
 const CACHE = {};
 
-async function main() {
-    logger.setLevel("debug");
+var mutex = false;
 
-    logger.info("Loading cache...");
+async function main() {
+    if (mutex) {
+        return;
+    }
+    mutex = true;
+    console.log("Loading cache...");
     var creations, bids, ends;
     try {
         if (fs.existsSync(cacheFile)) {
@@ -28,14 +31,15 @@ async function main() {
         // Save current block height now so we don't miss any event
         // If we fail to get block height, abort and wait for the next cycle
         options.toBlock = await getBlockHeight();
-        logger.info(`Search from block ${CACHE.blockLast} to block ${options.toBlock} for auction logs!`);
+        console.log(`Search from block ${CACHE.blockLast} to block ${options.toBlock} for auction logs!`);
 
         creations = await contractAuction.getPastEvents('AuctionCreated', options);
         bids = await contractAuction.getPastEvents('AuctionBid', options);
         ends = await contractAuction.getPastEvents('AuctionEnded', options);
     } catch (err) {
-        logger.error(err);
-        process.exit(1);
+        console.error(err);
+        mutex = false;
+        return;
     }
 
     creations.forEach(creation => CACHE.unsent.creations.push(creation.returnValues.tokenId));
@@ -61,9 +65,9 @@ async function main() {
             try {
                 const { data: createdTweet } = await tweetCreation(id);
                 CACHE.tweet.set(id, createdTweet.id);
-                logger.info(`Auction creation tweet for song ${id}: ${createdTweet.id}`);
+                console.log(`Auction creation tweet for song ${id}: ${createdTweet.id}`);
             } catch (err) {
-                logger.error(err);
+                console.error(err);
                 unsentCreation.push(id);
             }
         }
@@ -75,9 +79,9 @@ async function main() {
         const bid = CACHE.unsent.bids[i];
         try {
             const { data: createdTweet } = await tweetBid(bid.id, bid.bidder, bid.value, CACHE.tweet);
-            logger.info(`Auction bid tweet for song ${bid.id}: ${createdTweet.id}`);
+            console.log(`Auction bid tweet for song ${bid.id}: ${createdTweet.id}`);
         } catch (err) {
-            logger.error(err);
+            console.error(err);
             unsentBids.push(bid);
         }
     }
@@ -91,17 +95,15 @@ async function main() {
             if (CACHE.tweet.has(id)) {
                 CACHE.tweet.delete(id);
             }
-            logger.info(`Auction end tweet for song ${end.id}: ${createdTweet.id}`);
+            console.log(`Auction end tweet for song ${end.id}: ${createdTweet.id}`);
         }
         catch (err) {
-            logger.error(err);
+            console.error(err);
             unsentEnds.push(end);
         }
     }
     CACHE.unsent.ends = unsentEnds;
 
-
-    logger.info("Saving cache...");
     CACHE.blockLast = options.toBlock;
     const json = {};
     json.tokenLatest = CACHE.tokenLatest;
@@ -109,6 +111,10 @@ async function main() {
     json.tweet = [...CACHE.tweet];
     json.unsent = CACHE.unsent;
     fs.writeFileSync(cacheFile, JSON.stringify(json), 'utf-8');
+    mutex = false;
+    console.log("Saved cache...");
 }
 
-main().then(() => process.exit(0));
+main().then(() => {
+    setInterval(main, 60000);
+});
