@@ -92,8 +92,8 @@ async function main() {
         const end = CACHE.unsent.ends[i];
         try {
             const { data: createdTweet } = await tweetEnd(end.id, end.winner, end.amount, CACHE.tweet);
-            if (CACHE.tweet.has(id)) {
-                CACHE.tweet.delete(id);
+            if (CACHE.tweet.has(end.id)) {
+                CACHE.tweet.delete(end.id);
             }
             console.log(`Auction end tweet for song ${end.id}: ${createdTweet.id}`);
         }
